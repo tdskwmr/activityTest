@@ -1,54 +1,89 @@
-def on_pulsed_p2_high():
-    global Hi, Lo
-    Hi = pins.pulse_in(DigitalPin.P2, PulseValue.HIGH)
-    Lo = pins.pulse_in(DigitalPin.P2, PulseValue.LOW)
-pins.on_pulsed(DigitalPin.P2, PulseValue.HIGH, on_pulsed_p2_high)
-
-i = 0
-comArr: List[str] = []
-comStr = ""
-Hi = 0
-Lo = 0
+function help () {
+    serial.writeLine("Command help-------")
+    serial.writeLine("1:Mot stat")
+    serial.writeLine("test [p1 p2 ..]:param test")
+    serial.writeLine("pwm[ch 0..1][duty 0..1024]:pwmDuty")
+    serial.writeLine("-----------Ver0.1--")
+}
+function parameterInputTest (list: any[]) {
+    i = 0
+    while (i < list.length) {
+        serial.writeLine("" + (list[i]))
+        i += 1
+    }
+}
+pins.onPulsed(DigitalPin.P2, PulseValue.High, function () {
+    Hi = pins.pulseIn(DigitalPin.P2, PulseValue.High)
+    Lo = pins.pulseIn(DigitalPin.P2, PulseValue.Low)
+})
+function motStat () {
+    serial.writeNumbers([
+    speed,
+    Hi,
+    Lo,
+    Hi / (Hi + Lo)
+    ])
+}
+function pwmOut (list2: number[]) {
+    if (list2[1] == 0) {
+        pins.analogWritePin(AnalogPin.P0, list2[2])
+    } else {
+        if (list2[1] == 1) {
+            pins.analogWritePin(AnalogPin.P1, list2[2])
+        } else {
+            return 0
+        }
+    }
+    serial.writeNumbers([list2[1], list2[2]])
+    return 1
+}
+let comArr: string[] = []
+let comStr = ""
+let Lo = 0
+let Hi = 0
+let i = 0
+let speed = 0
 speed = 500
-pins.analog_write_pin(AnalogPin.P0, 512)
-pins.analog_set_period(AnalogPin.P0, 100)
-Lo = 0
-Hi = 0
-pins.set_events(DigitalPin.P2, PinEventType.PULSE)
-serial.write_line("**MicroBit test***")
-serial.write_string(">")
-
-def on_forever():
-    global comStr, comArr, i
-    comStr = serial.read_until(serial.delimiters(Delimiters.CARRIAGE_RETURN))
+pins.analogWritePin(AnalogPin.P0, 512)
+pins.analogSetPeriod(AnalogPin.P0, 10000)
+pins.analogWritePin(AnalogPin.P1, 512)
+pins.analogSetPeriod(AnalogPin.P1, 10000)
+pins.setEvents(DigitalPin.P2, PinEventType.Pulse)
+serial.writeLine("**MicroBit test***")
+basic.forever(function () {
+    serial.writeLine("")
+    serial.writeString(">")
+    comStr = serial.readUntil(serial.delimiters(Delimiters.CarriageReturn))
     comArr = comStr.split(" ")
-    if comArr[0] == "?":
-        serial.write_line("Command help-------")
-        serial.write_line("x:Motor cont stat")
-        serial.write_line("test [p1 p2 ..]:parameter test")
-        serial.write_line("-----------Ver0.1--")
-    if comArr[0] == "x":
-        serial.write_numbers([speed, Hi, Lo, Hi / (Hi + Lo)])
-    if comArr[0] == "test":
-        serial.write_line(comStr)
-        i = 0
-        while i < len(comArr):
-            serial.write_line("" + (comArr[i]))
-            i += 1
-    serial.write_line("")
-    serial.write_string(">")
-basic.forever(on_forever)
-
-def on_forever2():
-    global speed
-    if input.button_is_pressed(Button.A):
+    if (comArr[0] == "?") {
+        help()
+    }
+    if (comArr[0] == "1") {
+        motStat()
+    }
+    if (comArr[0] == "pwm") {
+        let list2: number[] = []
+        serial.writeLine(comStr)
+        if (pwmOut(list2) == 0) {
+            serial.writeLine("ERR")
+        }
+    }
+    if (comArr[0] == "test") {
+        serial.writeLine(comStr)
+        parameterInputTest(comArr)
+    }
+})
+basic.forever(function () {
+    if (input.buttonIsPressed(Button.A)) {
         speed += 10
-    if input.button_is_pressed(Button.B):
+    }
+    if (input.buttonIsPressed(Button.B)) {
         speed += -10
-    if speed > 1000:
+    }
+    if (speed > 1000) {
         speed = 1000
-    if speed < 0:
+    }
+    if (speed < 0) {
         speed = 0
-    pins.analog_write_pin(AnalogPin.P0, speed)
-    basic.pause(100)
-basic.forever(on_forever2)
+    }
+})
