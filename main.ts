@@ -1,45 +1,54 @@
+function help () {
+    serial.writeLine("Command help-------")
+    serial.writeLine("1:Mot stat")
+    serial.writeLine("test [p1 p2 ..]:param test")
+    serial.writeLine("-----------Ver0.1--")
+}
+function parameterInputTest (list: any[]) {
+    i = 0
+    while (i < list.length) {
+        serial.writeLine("" + (list[i]))
+        i += 1
+    }
+}
 pins.onPulsed(DigitalPin.P2, PulseValue.High, function () {
     Hi = pins.pulseIn(DigitalPin.P2, PulseValue.High)
     Lo = pins.pulseIn(DigitalPin.P2, PulseValue.Low)
 })
-let i = 0
+function motStat () {
+    serial.writeNumbers([
+    speed,
+    Hi,
+    Lo,
+    Hi / (Hi + Lo)
+    ])
+}
 let comArr: string[] = []
 let comStr = ""
 let Lo = 0
 let Hi = 0
-let speed = 500
+let i = 0
+let speed = 0
+speed = 500
 pins.analogWritePin(AnalogPin.P0, 512)
-pins.analogSetPeriod(AnalogPin.P0, 100)
+pins.analogSetPeriod(AnalogPin.P0, 10000)
 pins.setEvents(DigitalPin.P2, PinEventType.Pulse)
 serial.writeLine("**MicroBit test***")
-serial.writeString(">")
 basic.forever(function () {
+    serial.writeLine("")
+    serial.writeString(">")
     comStr = serial.readUntil(serial.delimiters(Delimiters.CarriageReturn))
     comArr = comStr.split(" ")
     if (comArr[0] == "?") {
-        serial.writeLine("Command help-------")
-        serial.writeLine("x:Motor cont stat")
-        serial.writeLine("test [p1 p2 ..]:parameter test")
-        serial.writeLine("-----------Ver0.1--")
+        help()
     }
-    if (comArr[0] == "x") {
-        serial.writeNumbers([
-        speed,
-        Hi,
-        Lo,
-        Hi / (Hi + Lo)
-        ])
+    if (comArr[0] == "1") {
+        motStat()
     }
     if (comArr[0] == "test") {
         serial.writeLine(comStr)
-        i = 0
-        while (i < comArr.length) {
-            serial.writeLine("" + (comArr[i]))
-            i += 1
-        }
+        parameterInputTest(comArr)
     }
-    serial.writeLine("")
-    serial.writeString(">")
 })
 basic.forever(function () {
     if (input.buttonIsPressed(Button.A)) {
@@ -55,5 +64,4 @@ basic.forever(function () {
         speed = 0
     }
     pins.analogWritePin(AnalogPin.P0, speed)
-    basic.pause(100)
 })
