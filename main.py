@@ -5,6 +5,7 @@ def on_pulsed_p2_high():
 pins.on_pulsed(DigitalPin.P2, PulseValue.HIGH, on_pulsed_p2_high)
 
 i = 0
+comArr: List[str] = []
 comStr = ""
 Hi = 0
 Lo = 0
@@ -18,9 +19,9 @@ serial.write_line("**MicroBit test***")
 serial.write_string(">")
 
 def on_forever():
-    global comStr, i
-    comArr: List[str] = []
+    global comStr, comArr, i
     comStr = serial.read_until(serial.delimiters(Delimiters.CARRIAGE_RETURN))
+    comArr = comStr.split(" ")
     if comArr[0] == "?":
         serial.write_line("Command help-------")
         serial.write_line("x:Motor cont stat")
@@ -31,7 +32,7 @@ def on_forever():
     if comArr[0] == "test":
         serial.write_line(comStr)
         i = 0
-        while i <= len(comArr) - 1:
+        while i < len(comArr):
             serial.write_line("" + (comArr[i]))
             i += 1
     serial.write_line("")

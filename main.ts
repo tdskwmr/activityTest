@@ -5,13 +5,11 @@ pins.onPulsed(DigitalPin.P2, PulseValue.High, function () {
 let i = 0
 let comArr: string[] = []
 let comStr = ""
-let Hi = 0
 let Lo = 0
+let Hi = 0
 let speed = 500
 pins.analogWritePin(AnalogPin.P0, 512)
 pins.analogSetPeriod(AnalogPin.P0, 100)
-Lo = 0
-Hi = 0
 pins.setEvents(DigitalPin.P2, PinEventType.Pulse)
 serial.writeLine("**MicroBit test***")
 serial.writeString(">")
@@ -35,7 +33,7 @@ basic.forever(function () {
     if (comArr[0] == "test") {
         serial.writeLine(comStr)
         i = 0
-        while (i <= comArr.length - 1) {
+        while (i < comArr.length) {
             serial.writeLine("" + (comArr[i]))
             i += 1
         }
