@@ -1,21 +1,10 @@
-function dispRot (p_speed: number) {
-    led.unplot(pattern, 0)
-    if (p_speed > 0) {
-        pattern += 1
-    } else {
-        pattern += -1
-    }
-    if (pattern > 4) {
-        pattern = 0
-    }
-    led.plot(pattern, 0)
-    basic.pause(Math.abs(p_speed))
-}
 pins.onPulsed(DigitalPin.P2, PulseValue.High, function () {
     Hi = pins.pulseIn(DigitalPin.P2, PulseValue.High)
     Lo = pins.pulseIn(DigitalPin.P2, PulseValue.Low)
 })
-let pattern = 0
+let i = 0
+let comArr: string[] = []
+let comStr = ""
 let Hi = 0
 let Lo = 0
 let speed = 500
@@ -24,6 +13,36 @@ pins.analogSetPeriod(AnalogPin.P0, 100)
 Lo = 0
 Hi = 0
 pins.setEvents(DigitalPin.P2, PinEventType.Pulse)
+serial.writeLine("**MicroBit test***")
+serial.writeString(">")
+basic.forever(function () {
+    comStr = serial.readUntil(serial.delimiters(Delimiters.CarriageReturn))
+    comArr = comStr.split(" ")
+    if (comArr[0] == "?") {
+        serial.writeLine("Command help-------")
+        serial.writeLine("x:Motor cont stat")
+        serial.writeLine("test [p1 p2 ..]:parameter test")
+        serial.writeLine("-----------Ver0.1--")
+    }
+    if (comArr[0] == "x") {
+        serial.writeNumbers([
+        speed,
+        Hi,
+        Lo,
+        Hi / (Hi + Lo)
+        ])
+    }
+    if (comArr[0] == "test") {
+        serial.writeLine(comStr)
+        i = 0
+        while (i <= comArr.length - 1) {
+            serial.writeLine("" + (comArr[i]))
+            i += 1
+        }
+    }
+    serial.writeLine("")
+    serial.writeString(">")
+})
 basic.forever(function () {
     if (input.buttonIsPressed(Button.A)) {
         speed += 10
@@ -38,11 +57,5 @@ basic.forever(function () {
         speed = 0
     }
     pins.analogWritePin(AnalogPin.P0, speed)
-    serial.writeNumbers([
-    speed,
-    Hi,
-    Lo,
-    Hi / (Hi + Lo)
-    ])
     basic.pause(100)
 })
