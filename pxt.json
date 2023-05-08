@@ -1,5 +1,5 @@
 {
-    "name": "test",
+    "name": "PWM-SpeedTest",
     "description": "",
     "dependencies": {
         "core": "*",
